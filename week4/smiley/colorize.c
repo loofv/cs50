@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
         fseek(inptr, padding, SEEK_CUR);
     }
 
-    colorize(&height, &width, image);
+    colorize(height, width, image);
 
     // write outfile's BITMAPFILEHEADER
     fwrite(&bf, sizeof(BITMAPFILEHEADER), 1, outptr);
