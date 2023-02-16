@@ -1,0 +1,11 @@
+sort1 uses: bubble sort
+
+How do you know?: It's very fast on a sorted list, since it will escape when it doesn't have to do any sorting actions. It's slightly faster on a reversed than random list since there will be less large numbers to be bubbled to the top.
+
+sort2 uses: merge sort
+
+How do you know?: Because it's the fastest with the largest data sets. It also performs similarly with sorted, random and reversed data sets of the same size.
+
+sort3 uses: selection sort
+
+How do you know?: it performs about the same on all lists. This is because it has the same best and worst case performance. The only thing that affects speed is basically the size of the data set. e.g. omega and big O are the same, theta (n2).
