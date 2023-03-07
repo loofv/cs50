@@ -18,22 +18,27 @@ typedef struct node
 node;
 
 // TODO: Choose number of buckets in hash table
-const unsigned int N = 26;
+const unsigned int N = 26 + 26 + 26;
 int word_count = 0;
 
 // Hash table
 node *table[N];
 
 // helper method to make traversing of nodes easier and cleaner
-bool findword(node *n, const char *word) {
-    if (n == NULL) {
+bool findword(node *n, const char *word)
+{
+    if (n == NULL)
+    {
         return false;
     }
-        if (strcasecmp(n->word, word) == 0) {
-            return true;
-        } else {
+    if (strcasecmp(n->word, word) == 0)
+    {
+        return true;
+    }
+    else
+    {
         return findword(n->next, word);
-        }
+    }
     return false;
 }
 
@@ -48,33 +53,44 @@ bool check(const char *word)
 // Hashes word to a number
 unsigned int hash(const char *word)
 {
-    // TODO: Improve this hash function
-    return toupper(word[0]) - 'A';
+    int total = 0;
+    for (int i = 0; i < 3 && word[i] != 0; i++)
+    {
+        total += toupper(word[i]) - 'A';
+    }
+    total = total % N;
+    return total;
 }
 
 // Loads dictionary into memory, returning true if successful, else false
 bool load(const char *dictionary)
 {
     FILE *file = fopen(dictionary, "r");
-    if (file == NULL) {
+    if (file == NULL)
+    {
         return false;
     }
 
     char word[LENGTH];
 
-    while (fscanf(file, "%s", word) != EOF) {
+    while (fscanf(file, "%s", word) != EOF)
+    {
         node *n = malloc(sizeof(node));
         strcpy(n->word, word);
         int index = hash(word);
-        if (table[index] == NULL) {
+        if (table[index] == NULL)
+        {
             n->next = NULL;
-        } else          {
+        }
+        else
+        {
             node *head = table[index];
             n->next = head;
         }
-            table[index] = n;
+        table[index] = n;
         word_count++;
     }
+    fclose(file);
 
     return true;
 }
@@ -85,16 +101,19 @@ unsigned int size(void)
     return word_count;
 }
 
-void unloadnode(node *n) {
-    if (n == NULL) {
+void unloadnode(node *n)
+{
+    if (n == NULL)
+    {
         return;
-        // Not sure if this will be null for table[0] that has nothing for instance.
-        // Does it work like that in C? Like java? uninitialized = null?
     }
-    if (n-> next == NULL) {
+    if (n-> next == NULL)
+    {
         free(n);
         return;
-    } else {
+    }
+    else
+    {
         node *next = n-> next;
         free(n);
         unloadnode(next);
@@ -104,7 +123,8 @@ void unloadnode(node *n) {
 // Unloads dictionary from memory, returning true if successful, else false
 bool unload(void)
 {
-    for (int i = 0; i < N; i++) {
+    for (int i = 0; i < N; i++)
+    {
         unloadnode(table[i]);
     }
     return true;
