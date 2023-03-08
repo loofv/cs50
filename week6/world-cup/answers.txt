@@ -1,0 +1,16 @@
+Times:
+
+10 simulations: 0m0.011s
+100 simulations: 0m0.026s
+1000 simulations: 0m0.163s
+10000 simulations: 0m0.166s
+100000 simulations: 0m1.145s
+1000000 simulations: 0m14.586s
+
+
+Questions:
+
+Which predictions, if any, proved incorrect as you increased the number of simulations?: You need somewhere between 100 and 1000 simulations to figure out that the least likely countries to win that can still win (such as Sweden and Uruguay) can actually still win. At 10 simulations, most countries had a 0.0% chance of winning. And obviously all simulations are inherently incorrect. They get slightly more accurate but never 100% accurate. 
+
+Suppose you're charged a fee for each second of compute time your program uses.
+After how many simulations would you call the predictions "good enough"?: 1000. All teams with a chance of winning have been identified, and guesstimates are within 0.1-0.2% of "correct". 
