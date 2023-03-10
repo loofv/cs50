@@ -1,0 +1,5 @@
+Danceability is relatively high at aorund 0.72, so the person probably likes to dance.
+Valence is below 0.5 which seems a bit negative. Perhaps the user likes depressing music.
+Energy is also quite high. I guess the user is a slightly negative but energetic dancer.
+
+Maybe by comparing these stats for other songs within the same genre. Some genres may be inherently low valence for instance, but maybe the user likes the songs with the highest valence within that genre, making the user relatively high valence for such genre. 
