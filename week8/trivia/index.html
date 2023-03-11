@@ -7,6 +7,43 @@
         <title>Trivia!</title>
         <script>
             // TODO: Add code to check answers to questions
+            document.addEventListener('DOMContentLoaded', function() {
+                let answer = document.querySelector('#Answer');
+                let yamaha = document.querySelector('#Yamaha');
+                yamaha.addEventListener('click', function() {
+                    yamaha.style.backgroundColor = "red";
+                    answer.innerHTML = 'Incorrect';
+                })
+
+                let suzuki = document.querySelector('#Suzuki');
+                suzuki.addEventListener('click', function() {
+                    suzuki.style.backgroundColor = "red";
+                    answer.innerHTML = 'Incorrect';
+                })
+
+                let honda = document.querySelector('#Honda');
+                honda.addEventListener('click', function() {
+                    honda.style.backgroundColor = "green";
+                    answer.innerHTML = 'Correct!';
+                })
+
+                let kawasaki = document.querySelector('#Kawasaki');
+                kawasaki.addEventListener('click', function() {
+                    kawasaki.style.backgroundColor = "red";
+                    answer.innerHTML = 'Incorrect';
+                })
+
+                document.querySelector('#Confirm').addEventListener('click', function() {
+                let ans = document.querySelector('input').value;
+                let answer2 = document.querySelector('#Answer2');
+                    if (ans == 'Ducati') {
+                        answer2.innerHTML = 'Correct!';
+                    } else {
+                        answer2.innerHTML = 'Incorrect';
+                    }
+                })
+
+            });
         </script>
     </head>
     <body>
@@ -18,13 +55,29 @@
             <div class="section">
                 <h2>Part 1: Multiple Choice </h2>
                 <hr>
-                <!-- TODO: Add multiple choice question here -->
+            <h3>
+                What is the most reliable motorcycle brand?
+            </h3>
+            <div id="Answer">
+            </div>
+                <button id ="Yamaha">Yamaha</button>
+                <button id="Suzuki">Suzuki</button>
+                <button id ="Honda">Honda</button>
+                <button id ="Kawasaki">Kawasaki</button>
+
             </div>
 
             <div class="section">
                 <h2>Part 2: Free Response</h2>
                 <hr>
                 <!-- TODO: Add free response question here -->
+                <h3>
+                    Which is the biggest Italian motorcycle brand?
+                </h3>
+            <div id="Answer2">
+            </div>
+                <input placeholder="Type your answer here.">
+                <button id ="Confirm">Confirm</button>
             </div>
         </div>
     </body>
