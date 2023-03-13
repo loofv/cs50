@@ -1,0 +1,27 @@
+.gear {
+	color: red;
+}
+
+.bike {
+	border: 1px solid red;
+	width: 400px;
+}
+@media screen and (min-width: 768px) {
+	.bike {
+		width: 768px;
+		background-color: green;
+	}
+}
+
+
+.emphasis {
+	text-decoration: underline;
+}
+
+.nav-bar {
+	background-color: black;
+	padding: 10px;
+}
+.nav-bar-item {
+	margin: 10px;
+}
