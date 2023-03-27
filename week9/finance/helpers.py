@@ -1,4 +1,5 @@
 import os
+import sys
 import requests
 import urllib.parse
 
@@ -50,9 +51,10 @@ def lookup(symbol):
     # Parse response
     try:
         quote = response.json()
+        # print("QUOTE ###: ", quote, file=sys.stderr)
         return {
             "name": quote["companyName"],
-            "price": float(quote["latestPrice"]),
+            "price": usd(float(quote["latestPrice"])),
             "symbol": quote["symbol"]
         }
     except (KeyError, TypeError, ValueError):

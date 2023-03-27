@@ -1,0 +1,44 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Your stocks
+{% endblock %}
+
+{% block main %}
+            <div class="section">
+
+                <h2>Your stocks h2</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th> Stock list </th>
+                        </tr>
+                        <tr>
+                            <th> Balance: {{ cash }} </th>
+                        </tr>
+                        <tr>
+                            <th> Grand total: {{ grandtotal }} </th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for stock in stocks %}
+                        <tr>
+                            <td>
+                                <b>symbol:</b> {{ stock['symbol'] }}
+                            </td>
+                            <td>
+                                <b>Current price:</b> {{ stock['price'] }}
+                            </td>
+                            <td>
+                                <b>Shares held:</b> {{ stock['amount'] }}
+                            </td>
+                            <td>
+                                <b>Total value:</b> {{ stock['totalValue'] }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+{% endblock %}

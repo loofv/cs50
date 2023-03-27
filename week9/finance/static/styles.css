@@ -3,7 +3,9 @@ nav .navbar-brand
 {
     font-size: xx-large;
 }
-
+tr, td {
+    padding: 15px;
+}
 /* Colors for brand */
 nav .navbar-brand .blue
 {
