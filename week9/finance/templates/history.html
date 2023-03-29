@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Stock transaction history
+{% endblock %}
+
+{% block main %}
+            <div class="section">
+
+                <h2>Stock history</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>History table</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for stock in stocklist %}
+                        <tr>
+                            <td>
+                                <b>Transaction:</b> {{ stock['transactiontype'] }}
+                            </td>
+                            <td>
+                                <b>Symbol:</b> {{ stock['symbol'] }}
+                            </td>
+                            <td>
+                                <b>Price:</b> {{ stock['price'] }}
+                            </td>
+                            <td>
+                                <b>Number of shares in transaction:</b> {{ stock['amount'] }}
+                            </td>
+                            <td>
+                                <b>Date and time of trade:</b> {{ stock['datetime'] }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+{% endblock %}

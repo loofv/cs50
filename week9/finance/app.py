@@ -76,6 +76,23 @@ def index():
     return render_template("list.html", stocks=stocklist, cash = cash, grandtotal=grandtotal)
 
 
+@app.route("/loan", methods=["GET", "POST"])
+@login_required
+def loan():
+    if request.method == "POST":
+        user_id = session["user_id"]
+        loan = float(request.form.get("loan"))
+        if loan <= 0:
+            return apology("That would make for a very strange loan. Try again.")
+        cashlist = db.execute("SELECT cash FROM users WHERE id = ?", user_id)
+        cash = cashlist[0]['cash']
+        if cash == 0:
+            return apology("No bank will give you a loan if you're broke ;(")
+        new_balance = loan + cash
+        db.execute("UPDATE users SET cash = ? WHERE id = ?", new_balance, user_id)
+        return redirect("/")
+    else:
+        return render_template("loan.html")
 
 
 @app.route("/buy", methods=["GET", "POST"])
@@ -84,12 +101,18 @@ def buy():
     if request.method == "POST":
         # print("------------------------Post req to buy ###: ", file=sys.stderr)
         symbol = request.form.get("symbol")
-        shares = int(request.form.get("shares"))
+        try:
+            shares = int(request.form.get("shares"))
+        except:
+            return apology("Shares needs to be filled with whole values")
         if not symbol or shares <= 0:
             return apology("Symbol and shares both need to be filled")
 
+        shares = int(shares)
         data = lookup(symbol)
-        price = float(data['price'].strip('$'))
+        if not data:
+           return apology("Could not find stock", 400)
+        price = float(data['price'].strip("$"))
         total = price * shares
         user_id = session["user_id"]
         rows = db.execute("SELECT * FROM users WHERE id = ?", user_id)
@@ -103,7 +126,15 @@ def buy():
             new_balance = available_funds - total
             db.execute("UPDATE users SET cash = ? WHERE users.id = ?", new_balance, user_id)
             db.execute("INSERT INTO history (userid, stocktransaction, symbol, amount, price, datetime) VALUES (?, ?, ?, ?, ?, ?);", user_id, STOCKTRANSACTION_BOUGHT, symbol, shares, price, s1)
-            db.execute("INSERT INTO shareholders (userid, symbol, amount, price) VALUES (?, ?, ?, ?);", user_id, symbol, shares, price)
+
+            rows = db.execute("SELECT * FROM shareholders WHERE userid = ? AND symbol = ?", user_id, symbol)
+            if rows:
+                old_amount = rows[0]['amount']
+                new_amount = old_amount + shares
+                db.execute("UPDATE shareholders SET amount = ? WHERE userid = ?", new_amount, user_id)
+            else:
+                db.execute("INSERT INTO shareholders (userid, symbol, amount, price) VALUES (?, ?, ?, ?);", user_id, symbol, shares, price)
+
         return redirect("/")
 
     else:
@@ -117,8 +148,23 @@ def buy():
 @app.route("/history")
 @login_required
 def history():
-    """Show history of transactions"""
-    return apology("TODO")
+    stocklist = []
+    user_id = session["user_id"]
+    rows = db.execute("SELECT * FROM history WHERE userid = ?", user_id)
+    for row in rows:
+        stockitem = {
+                'transactiontype': row['stocktransaction'],
+                'symbol': row['symbol'],
+                'price': usd(row['price']),
+                'amount': row['amount'],
+                'datetime': row['datetime'],
+                }
+
+        print("------------------------date time ###: ", row['datetime'], file=sys.stderr)
+        stocklist.append(stockitem)
+
+    
+    return render_template("history.html", stocklist=stocklist)
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -133,11 +179,11 @@ def login():
 
         # Ensure username was submitted
         if not request.form.get("username"):
-            return apology("must provide username", 403)
+            return apology("must provide username", 400)
 
         # Ensure password was submitted
         elif not request.form.get("password"):
-            return apology("must provide password", 403)
+            return apology("must provide password", 400)
 
         # Query database for username
         rows = db.execute("SELECT * FROM users WHERE username = ?", request.form.get("username"))
@@ -173,8 +219,11 @@ def logout():
 def quote():
     if request.method == "POST":
         symbol = request.form.get("symbol")
-        quote = lookup(symbol)
-        return render_template("quoted.html", quote=quote)
+        quote = lookup(symbol.upper())
+        if not quote:
+            return apology("Could not find stock", 400)
+
+        return render_template("quoted.html", name=quote['name'], price=quote['price'], symbol=symbol)
 
     else:
         return render_template("quote.html")
@@ -192,20 +241,20 @@ def register():
         confirmation = request.form.get("confirmation")
         # Ensure username was submitted
         if not username:
-            return apology("must provide username", 403)
+            return apology("must provide username", 400)
 
             # Ensure password was submitted
         elif not password:
-            return apology("must provide password", 403)
+            return apology("must provide password", 400)
 
         # Query database for username
         rows = db.execute("SELECT username FROM users WHERE username = ?", username)
         for row in rows:
             if row["username"] == username or username == '':
-                return apology("Username already exists", 403)
+                return apology("Username already exists", 400)
 
         if password == '' or password != confirmation:
-            return apology("Password either blank or not matching", 403)
+            return apology("Password either blank or not matching", 400)
 
         # DB stuff
         hash = generate_password_hash(password)
@@ -221,5 +270,49 @@ def register():
 @app.route("/sell", methods=["GET", "POST"])
 @login_required
 def sell():
-    """Sell shares of stock"""
-    return apology("TODO")
+
+    # User reached route via POST (as by submitting a form via POST)
+    if request.method == "POST":
+
+        symbol = request.form.get("symbol")
+        shares = int(request.form.get("shares"))
+
+        user_id = session["user_id"]
+        rows = db.execute("SELECT * FROM shareholders WHERE userid = ?", user_id)
+        if not rows:
+            return apology("You don't appear to own that stock")
+
+        old_amount = rows[0]['amount']
+        if shares > old_amount:
+            return apology("You don't have that many stocks to sell")
+
+        if not symbol or shares <= 0:
+            return apology("Symbol and shares both need to be filled")
+
+        data = lookup(symbol)
+        if not data:
+            return apology("Could not find that stock")
+
+        price = float(data['price'].strip("$"))
+        total = price * shares
+        rows = db.execute("SELECT * FROM users WHERE id = ?", user_id)
+        available_funds = rows[0]['cash']
+
+        now = datetime.datetime.now()
+        s1 = now.strftime("%Y-%m-%d %H:%M")
+        new_balance = available_funds + total
+        db.execute("UPDATE users SET cash = ? WHERE users.id = ?", new_balance, user_id)
+        db.execute("INSERT INTO history (userid, stocktransaction, symbol, amount, price, datetime) VALUES (?, ?, ?, ?, ?, ?);", user_id, STOCKTRANSACTION_SOLD, symbol, shares, price, s1)
+
+        new_amount = old_amount - shares
+
+        # update or delete?
+        if new_amount == 0:
+            db.execute("DELETE FROM shareholders WHERE userid = ? AND symbol = ?", user_id, symbol)
+        else:
+            db.execute("UPDATE shareholders SET amount = ? WHERE userid = ?", new_amount, user_id)
+
+        return redirect("/")
+
+    else:
+        return render_template("sell.html")
