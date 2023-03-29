@@ -56,24 +56,25 @@ def index():
     for stock in stocks:
         symbol = stock['symbol']
         data = lookup(symbol)
-        price = float(data['price'].strip('$'))
+        price = str(data['price']).strip("$")
+        price = float(price)
         amount = int(stock['amount'])
 
         total = 0
-        total +=  amount * price
+        total += amount * price
         grandtotal += total
         # print("------------------------stonk TOTAL ###: ", total, file=sys.stderr)
         stockitem = {
-                'symbol': symbol,
-                'price': usd(price),
-                'amount': amount,
-                'totalValue': usd(total)
-                }
+            'symbol': symbol,
+            'price': usd(price),
+            'amount': amount,
+            'totalValue': usd(total)
+        }
         stocklist.append(stockitem)
 
     cash = usd(cash)
     grandtotal = usd(grandtotal)
-    return render_template("list.html", stocks=stocklist, cash = cash, grandtotal=grandtotal)
+    return render_template("list.html", stocks=stocklist, cash=cash, grandtotal=grandtotal)
 
 
 @app.route("/loan", methods=["GET", "POST"])
@@ -101,6 +102,7 @@ def buy():
     if request.method == "POST":
         # print("------------------------Post req to buy ###: ", file=sys.stderr)
         symbol = request.form.get("symbol")
+        shares = 0
         try:
             shares = int(request.form.get("shares"))
         except:
@@ -108,11 +110,14 @@ def buy():
         if not symbol or shares <= 0:
             return apology("Symbol and shares both need to be filled")
 
-        shares = int(shares)
         data = lookup(symbol)
         if not data:
-           return apology("Could not find stock", 400)
-        price = float(data['price'].strip("$"))
+            return apology("Could not find stock", 400)
+
+        price = str(data['price']).strip("$")
+        price = float(price)
+        print("------------------------Post DATA PRICE ###: ", price, file=sys.stderr)
+
         total = price * shares
         user_id = session["user_id"]
         rows = db.execute("SELECT * FROM users WHERE id = ?", user_id)
@@ -125,7 +130,8 @@ def buy():
             s1 = now.strftime("%Y-%m-%d %H:%M")
             new_balance = available_funds - total
             db.execute("UPDATE users SET cash = ? WHERE users.id = ?", new_balance, user_id)
-            db.execute("INSERT INTO history (userid, stocktransaction, symbol, amount, price, datetime) VALUES (?, ?, ?, ?, ?, ?);", user_id, STOCKTRANSACTION_BOUGHT, symbol, shares, price, s1)
+            db.execute("INSERT INTO history (userid, stocktransaction, symbol, amount, price, datetime) VALUES (?, ?, ?, ?, ?, ?);",
+                       user_id, STOCKTRANSACTION_BOUGHT, symbol, shares, price, s1)
 
             rows = db.execute("SELECT * FROM shareholders WHERE userid = ? AND symbol = ?", user_id, symbol)
             if rows:
@@ -133,16 +139,14 @@ def buy():
                 new_amount = old_amount + shares
                 db.execute("UPDATE shareholders SET amount = ? WHERE userid = ?", new_amount, user_id)
             else:
-                db.execute("INSERT INTO shareholders (userid, symbol, amount, price) VALUES (?, ?, ?, ?);", user_id, symbol, shares, price)
+                db.execute("INSERT INTO shareholders (userid, symbol, amount, price) VALUES (?, ?, ?, ?);",
+                           user_id, symbol, shares, price)
 
         return redirect("/")
 
     else:
         # userid, stocktransaction, symbol, amount, price, datetime
-
-
         return render_template("buy.html")
-
 
 
 @app.route("/history")
@@ -153,17 +157,16 @@ def history():
     rows = db.execute("SELECT * FROM history WHERE userid = ?", user_id)
     for row in rows:
         stockitem = {
-                'transactiontype': row['stocktransaction'],
-                'symbol': row['symbol'],
-                'price': usd(row['price']),
-                'amount': row['amount'],
-                'datetime': row['datetime'],
-                }
+            'transactiontype': row['stocktransaction'],
+            'symbol': row['symbol'],
+            'price': usd(row['price']),
+            'amount': row['amount'],
+            'datetime': row['datetime'],
+        }
 
         print("------------------------date time ###: ", row['datetime'], file=sys.stderr)
         stocklist.append(stockitem)
 
-    
     return render_template("history.html", stocklist=stocklist)
 
 
@@ -229,7 +232,6 @@ def quote():
         return render_template("quote.html")
 
 
-
 @app.route("/register", methods=["GET", "POST"])
 def register():
     """Register user"""
@@ -267,6 +269,7 @@ def register():
         # Redirect user to register page
         return render_template("register.html")
 
+
 @app.route("/sell", methods=["GET", "POST"])
 @login_required
 def sell():
@@ -293,7 +296,8 @@ def sell():
         if not data:
             return apology("Could not find that stock")
 
-        price = float(data['price'].strip("$"))
+        price = str(data['price']).strip("$")
+        price = float(price)
         total = price * shares
         rows = db.execute("SELECT * FROM users WHERE id = ?", user_id)
         available_funds = rows[0]['cash']
@@ -302,7 +306,8 @@ def sell():
         s1 = now.strftime("%Y-%m-%d %H:%M")
         new_balance = available_funds + total
         db.execute("UPDATE users SET cash = ? WHERE users.id = ?", new_balance, user_id)
-        db.execute("INSERT INTO history (userid, stocktransaction, symbol, amount, price, datetime) VALUES (?, ?, ?, ?, ?, ?);", user_id, STOCKTRANSACTION_SOLD, symbol, shares, price, s1)
+        db.execute("INSERT INTO history (userid, stocktransaction, symbol, amount, price, datetime) VALUES (?, ?, ?, ?, ?, ?);",
+                   user_id, STOCKTRANSACTION_SOLD, symbol, shares, price, s1)
 
         new_amount = old_amount - shares
 
@@ -315,4 +320,7 @@ def sell():
         return redirect("/")
 
     else:
-        return render_template("sell.html")
+        user_id = session["user_id"]
+        stocklist = db.execute("SELECT symbol FROM shareholders WHERE userid = ?", user_id)
+
+        return render_template("sell.html", stocklist=stocklist)
